@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { Task } from '../types/task';
 import { getTasks, saveTasks} from "../services/taskService";
 import { TaskForm } from "./TaskForm";
+import { User } from '../types/user';
+import { getUsers } from "../services/UserService";
 
 interface TaskListProps {
     projectId: number;
@@ -9,8 +11,10 @@ interface TaskListProps {
 
 export const TaskList = ({ projectId }: TaskListProps) =>{
     const [tasks, setTasks] = useState<Task[]>([]);
+    const [users, setUsers] = useState<User[]>([]);
     useEffect(() => {
         setTasks(getTasks());
+        setUsers(getUsers());
     }, []);
 
     const handleAddTask = (newTask: Task) =>{
@@ -23,7 +27,13 @@ export const TaskList = ({ projectId }: TaskListProps) =>{
         const filteredTasks = tasks.filter((task) => task.id !== id)
         setTasks(filteredTasks);
         saveTasks(filteredTasks);
-    }
+    };
+
+    const getAssigneeName = (assigneeId?: number) =>{
+        if(!assigneeId) return 'Brak przypisanego pracownika';
+        const user = users.find((u) => u.id === assigneeId);
+        return user ? `${user.name} ${user.surname}` : 'Nieznany';
+    };
 
     const filteredTasks = tasks.filter((task) => task.projectId === projectId);
 
@@ -40,6 +50,7 @@ export const TaskList = ({ projectId }: TaskListProps) =>{
                             <div>
                                 <span className="small fw-bold me-2">{task.title}</span>
                                 <span className="badge bg-secondary">{task.status}</span>
+                                <span className="small text-muted me-3">Osoba: {getAssigneeName(task.assigneeId)}</span>
                             </div>
                             <button className="btn btn-outline-danger btn-sm" onClick={() => handleDeleteTask(task.id)}>Usuń</button>
                         </li>

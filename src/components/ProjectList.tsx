@@ -1,10 +1,16 @@
+import { getUsers } from '../services/UserService';
+import { Priority } from '../types/notification';
 import { useState, useEffect } from 'react';
 import { Project } from '../types/project';
 import { getProjects, saveProjects } from '../services/projectService';
 import { ProjectForm } from './ProjectForm';
 import { TaskList } from './TaskList';
 
-export const ProjectList = () => {
+interface ProjectListProps {
+    onNotify: (title: string, message: string, priority: Priority, recipientId: number) => void;
+}
+
+export const ProjectList = ({ onNotify }: ProjectListProps) => {
     // STANY
     const [projects, setProjects] = useState<Project[]>([]);
     const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
@@ -31,10 +37,21 @@ export const ProjectList = () => {
     };
 
     const handleAddProject = (newProject: Project) => {
-        const updatedProjects = [...projects, newProject];
-        setProjects(updatedProjects);
-        saveProjects(updatedProjects);
-    };
+     const updatedProjects = [...projects, newProject];
+     setProjects(updatedProjects);
+     saveProjects(updatedProjects);
+
+     const admins = getUsers().filter(user => user.role === 'admin');
+
+     admins.forEach(admin => {
+         onNotify(
+             'Nowy projekt', 
+             `Utworzono projekt: ${newProject.name}`, 
+             'high', 
+             admin.id
+         );
+     });
+ };
 
     const handleDeleteProject = (projectId: number) => {
         const filteredProjects = projects.filter((project) => project.id !== projectId);

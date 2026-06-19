@@ -5,4 +5,5 @@ export interface Task {
     projectId: number;
     title: string;
     status: TaskStatus;
+    assigneeId?: number;
 }
