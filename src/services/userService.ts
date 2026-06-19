@@ -13,3 +13,4 @@ return MOCK_USERS;
 export const getLoggedInUser = (): User => {
     return MOCK_USERS[0];
 };
+

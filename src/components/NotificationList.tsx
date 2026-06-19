@@ -17,7 +17,6 @@ export const NotificationList = ({notifications, onMarkAsRead} : NotificationLis
                 {notifications.map(notification => (
                     <div 
                         key={notification.id} 
-                        // Zmieniamy kolor tła w zależności od tego, czy przeczytane
                         className={`list-group-item list-group-item-action d-flex justify-content-between align-items-center ${notification.isRead ? 'bg-light text-muted' : ''}`}
                     >
                         <div>

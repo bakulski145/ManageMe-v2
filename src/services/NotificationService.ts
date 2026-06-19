@@ -7,7 +7,7 @@ export const getNotification = (): AppNotification[] => {
     if(notification_data) {
         return JSON.parse(notification_data);
     }
-    return []; // Zaczynamy z pustą listą, bez mocków!
+    return [];
 }
 
 export const saveNotification = (notifications: AppNotification[]): void => {
@@ -24,7 +24,7 @@ export const addNotification = (
     const notifications = getNotification();
     
     const newNotification: AppNotification = {
-        id: Date.now(),
+        id: Date.now() + Math.floor(Math.random() * 1000000),
         title: title,
         message: message,
         date: new Date().toISOString(),

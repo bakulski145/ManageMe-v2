@@ -1,17 +1,16 @@
-import { getUsers } from '../services/UserService';
-import { Priority } from '../types/notification';
 import { useState, useEffect } from 'react';
 import { Project } from '../types/project';
 import { getProjects, saveProjects } from '../services/projectService';
 import { ProjectForm } from './ProjectForm';
 import { TaskList } from './TaskList';
+import { getUsers } from '../services/UserService';
+import { Priority } from '../types/notification';
 
 interface ProjectListProps {
     onNotify: (title: string, message: string, priority: Priority, recipientId: number) => void;
 }
 
 export const ProjectList = ({ onNotify }: ProjectListProps) => {
-    // STANY
     const [projects, setProjects] = useState<Project[]>([]);
     const [activeProjectId, setActiveProjectId] = useState<number | null>(null);
 
@@ -37,21 +36,20 @@ export const ProjectList = ({ onNotify }: ProjectListProps) => {
     };
 
     const handleAddProject = (newProject: Project) => {
-     const updatedProjects = [...projects, newProject];
-     setProjects(updatedProjects);
-     saveProjects(updatedProjects);
+        const updatedProjects = [...projects, newProject];
+        setProjects(updatedProjects);
+        saveProjects(updatedProjects);
 
-     const admins = getUsers().filter(user => user.role === 'admin');
-
-     admins.forEach(admin => {
-         onNotify(
-             'Nowy projekt', 
-             `Utworzono projekt: ${newProject.name}`, 
-             'high', 
-             admin.id
-         );
-     });
- };
+        const admins = getUsers().filter(user => user.role === 'admin');
+        admins.forEach(admin => {
+            onNotify(
+                'Nowy projekt', 
+                `Utworzono projekt: ${newProject.name}`, 
+                'high', 
+                admin.id
+            );
+        });
+    };
 
     const handleDeleteProject = (projectId: number) => {
         const filteredProjects = projects.filter((project) => project.id !== projectId);
@@ -76,7 +74,8 @@ export const ProjectList = ({ onNotify }: ProjectListProps) => {
                             key={project.id} 
                             className={`list-group-item ${activeProjectId === project.id ? 'active' : ''}`} 
                             onClick={() => handleProjectClick(project.id)} 
-                            style={{ cursor: 'pointer' }}>
+                            style={{ cursor: 'pointer' }}
+                        >
                             <div className="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h5 className="mb-1">{project.name}</h5>
@@ -98,7 +97,7 @@ export const ProjectList = ({ onNotify }: ProjectListProps) => {
 
                             {activeProjectId === project.id && (
                                 <div className="mt-3 bg-white text-dark p-3 rounded shadow-sm" onClick={(e) => e.stopPropagation()}>
-                                    <TaskList projectId={project.id} />
+                                    <TaskList projectId={project.id} onNotify={onNotify} />
                                 </div>
                             )}
                         </li>

@@ -6,14 +6,14 @@ import { getNotification, saveNotification, addNotification } from './services/N
 import { NotificationList } from './components/NotificationList';
 
 type Theme = 'light' | 'dark';
-type View = 'projects' | 'notifications'
+type View = 'projects' | 'notifications';
 
-function App()
-{
+function App() {
   const currentUser = getLoggedInUser();
   const [theme, setTheme] = useState<Theme>('light');
   const [currentView, setCurrentView] = useState<View>('projects');
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [toastNotification, setToastNotification] = useState<AppNotification | null>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('manageme_theme') as Theme;
@@ -25,10 +25,10 @@ function App()
     }
     setNotifications(getNotification());
   }, []);
+
   const markAsRead = (id: number) => {
     const updateNotifications = notifications.map(notification => {
-      if(notification.id === id)
-      {
+      if(notification.id === id) {
         return {...notification, isRead: true};
       }
       return notification;
@@ -36,6 +36,18 @@ function App()
     setNotifications(updateNotifications);
     saveNotification(updateNotifications);
   }
+
+  const handleNotify = (title: string, message: string, priority: Priority, recipientId: number) => {
+    const newNotif = addNotification(title, message, priority, recipientId);
+    setNotifications(prev => [newNotif, ...prev]);
+    if ((priority === 'medium' || priority === 'high') && recipientId === currentUser?.id) {
+      setToastNotification(newNotif);
+      setTimeout(() => {
+        setToastNotification(null);
+      }, 5000);
+    }
+  };
+
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
@@ -43,10 +55,11 @@ function App()
     document.documentElement.setAttribute('data-bs-theme', newTheme);
   };
 
-  const filteredNotifications = notifications.filter((notification) => notification.isRead === false)
-  const unreadCount = filteredNotifications.length;
+  const myNotifications = notifications.filter((n) => n.recipientId === currentUser?.id);
+  
+  const unreadCount = myNotifications.filter((n) => !n.isRead).length;
 
-return (
+  return (
         <div className="container mt-4">
             <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
                 <h1 style={{ cursor: 'pointer' }} onClick={() => setCurrentView('projects')}>Moja Aplikacja - ManageMe</h1>
@@ -62,7 +75,6 @@ return (
                             </span>
                         )}
                     </button>
-                    {/* PRZYCISK ZMIANY MOTYWU */}
                     <button 
                         className={`btn btn-sm ${theme === 'light' ? 'btn-dark' : 'btn-light'}`} 
                         onClick={toggleTheme}
@@ -79,13 +91,31 @@ return (
             </div>
             
             {currentView === 'projects' ? (
-    <ProjectList />
-) : (
-    <NotificationList 
-        notifications={notifications} 
-        onMarkAsRead={markAsRead} 
-    />
-)}
+                <ProjectList onNotify={handleNotify} />
+            ) : (
+                <NotificationList 
+                    notifications={myNotifications} 
+                    onMarkAsRead={markAsRead} 
+                />
+            )}
+
+            {toastNotification && (
+                <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 11 }}>
+                    <div className="toast show shadow-lg" role="alert">
+                        <div className={`toast-header text-white ${toastNotification.priority === 'high' ? 'bg-danger' : 'bg-warning text-dark'}`}>
+                            <strong className="me-auto">{toastNotification.title}</strong>
+                            <button 
+                                type="button" 
+                                className="btn-close btn-close-white" 
+                                onClick={() => setToastNotification(null)}
+                            ></button>
+                        </div>
+                        <div className="toast-body bg-white text-dark">
+                            {toastNotification.message}
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
